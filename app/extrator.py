@@ -4,7 +4,7 @@ import pdfplumber
 
 # ============================================================
 # EXTRAÇÃO DOS DADOS DA NFS-e
-# Modelos: DANFSe v1.0/v2.0 + DANFESe v2.0 + NFSe municipais (ex.: Santa Teresa/ES e Vila Velha/ES)
+# Modelos: DANFSe v1.0/v2.0 + DANFESe v2.0 (inclusive CNPJ sem pontuação) + NFSe municipais (ex.: Santa Teresa/ES e Vila Velha/ES)
 # ============================================================
 
 def limpar_texto(texto: str) -> str:
@@ -148,7 +148,24 @@ def extrair_cnpj_prestador(texto: str):
 
     # Modelos nacionais: primeiro CNPJ formatado dentro do bloco do prestador.
     match = re.search(r"\b\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}\b", secao)
-    return match.group(0) if match else None
+    if match:
+        return match.group(0)
+
+    # Alguns DANFESe v2.0 trazem o CNPJ sem pontuação, por exemplo:
+    # 39277397000107
+    # Como a busca está limitada ao bloco do PRESTADOR, evitamos capturar
+    # o CNPJ do tomador/adquirente.
+    match = re.search(r"(?<!\d)(\d{14})(?!\d)", secao)
+    if match:
+        cnpj = match.group(1)
+
+        # Padroniza o retorno para XX.XXX.XXX/XXXX-XX.
+        return (
+            f"{cnpj[0:2]}.{cnpj[2:5]}.{cnpj[5:8]}/"
+            f"{cnpj[8:12]}-{cnpj[12:14]}"
+        )
+
+    return None
 
 
 def extrair_razao_social_por_layout(caminho_pdf: Path):
@@ -491,5 +508,4 @@ def extrair_dados_nfse(caminho_pdf: Path) -> dict:
         "VALOR DO SERVIÇO": valor_servico,
         "STATUS": status,
     }
-
 
