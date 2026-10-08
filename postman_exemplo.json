@@ -1,0 +1,35 @@
+{
+  "info": {
+    "name": "API NFS-e Base64",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key": "base_url", "value": "https://SEU-SERVICO.onrender.com"},
+    {"key": "api_key", "value": "SUA-API-KEY"}
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/health"
+      }
+    },
+    {
+      "name": "Extrair NFS-e Base64",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "X-API-Key", "value": "{{api_key}}", "type": "text"},
+          {"key": "Content-Type", "value": "application/json", "type": "text"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"base64\": \"SEU_BASE64_AQUI\",\n  \"nome_arquivo\": \"nota.pdf\"\n}",
+          "options": {"raw": {"language": "json"}}
+        },
+        "url": "{{base_url}}/nfse/extrair"
+      }
+    }
+  ]
+}
