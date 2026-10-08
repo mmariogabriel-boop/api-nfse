@@ -1,93 +1,98 @@
-# API Extrator NFS-e
+# API NFS-e Base64 com OCR automático
 
-A API recebe PDFs de NFS-e e retorna:
+A API continua recebendo o PDF em Base64.
+
+## Fluxo de leitura
+
+### Caminho 1 — PDF com texto
+
+```text
+Base64
+  ↓
+PDF temporário
+  ↓
+pdfplumber
+  ↓
+texto encontrado
+  ↓
+regex + leitura por posição
+  ↓
+JSON
+```
+
+### Caminho 2 — PDF imagem / escaneado
+
+```text
+Base64
+  ↓
+PDF temporário
+  ↓
+pdfplumber
+  ↓
+sem texto
+  ↓
+PyMuPDF renderiza a página
+  ↓
+RapidOCR
+  ↓
+mapeamento dos campos
+  ↓
+JSON
+```
+
+Também existe recuperação automática: se o PDF tiver texto,
+mas algum dos quatro campos não for encontrado, o OCR tenta
+preencher apenas os campos faltantes.
+
+## Campos retornados
 
 - Número da NFS-e
 - CNPJ do prestador
-- Razão Social
-- Valor do serviço
+- Razão Social do prestador
+- Valor do Serviço
 - Status
 
-## Instalação
+## Endpoint
 
-Dentro da pasta do projeto:
+`POST /nfse/extrair`
 
-```bash
-py -m pip install -r requirements.txt
-```
-
-Para executar os exemplos de cliente:
-
-```bash
-py -m pip install requests
-```
-
-## Iniciar
-
-No Windows, execute:
+Headers:
 
 ```text
-iniciar_api.bat
+X-API-Key: SUA_CHAVE
+Content-Type: application/json
 ```
 
-ou:
+Body:
 
-```bash
-py -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+```json
+{
+  "base64": "JVBERi0xLjcK...",
+  "nome_arquivo": "nota.pdf"
+}
 ```
 
-Abra:
+## Render
+
+Build:
 
 ```text
-http://127.0.0.1:8000/docs
+pip install -r requirements.txt
 ```
 
-## API Key de teste
-
-O `.env` está configurado inicialmente com:
+Start:
 
 ```text
-chave-teste-nfse-2026
+uvicorn app.main:app --host 0.0.0.0 --port $PORT
 ```
 
-Use no header:
+Variáveis:
 
 ```text
-X-API-Key: chave-teste-nfse-2026
+API_KEY=SUA_CHAVE
+MAX_FILE_MB=20
+PYTHON_VERSION=3.13.14
 ```
 
-Troque a chave antes de publicar a API.
-
-## Uma nota
-
-```text
-POST /nfse/extrair
-```
-
-Campo multipart:
-
-```text
-arquivo
-```
-
-## Várias notas
-
-```text
-POST /nfse/extrair-lote
-```
-
-Campo multipart repetido:
-
-```text
-arquivos
-```
-
-## Produção
-
-Antes de publicar:
-
-- troque a API Key;
-- remova `--reload`;
-- utilize HTTPS;
-- não envie o `.env` para Git;
-- defina limites de upload adequados.
+Não é necessário instalar Tesseract no Render.
+O OCR principal usa RapidOCR + ONNXRuntime.
