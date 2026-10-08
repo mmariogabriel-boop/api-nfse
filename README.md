@@ -1,98 +1,93 @@
-# API NFS-e Base64 com OCR automático
+# API Extrator NFS-e
 
-A API continua recebendo o PDF em Base64.
-
-## Fluxo de leitura
-
-### Caminho 1 — PDF com texto
-
-```text
-Base64
-  ↓
-PDF temporário
-  ↓
-pdfplumber
-  ↓
-texto encontrado
-  ↓
-regex + leitura por posição
-  ↓
-JSON
-```
-
-### Caminho 2 — PDF imagem / escaneado
-
-```text
-Base64
-  ↓
-PDF temporário
-  ↓
-pdfplumber
-  ↓
-sem texto
-  ↓
-PyMuPDF renderiza a página
-  ↓
-RapidOCR
-  ↓
-mapeamento dos campos
-  ↓
-JSON
-```
-
-Também existe recuperação automática: se o PDF tiver texto,
-mas algum dos quatro campos não for encontrado, o OCR tenta
-preencher apenas os campos faltantes.
-
-## Campos retornados
+A API recebe PDFs de NFS-e e retorna:
 
 - Número da NFS-e
 - CNPJ do prestador
-- Razão Social do prestador
-- Valor do Serviço
+- Razão Social
+- Valor do serviço
 - Status
 
-## Endpoint
+## Instalação
 
-`POST /nfse/extrair`
+Dentro da pasta do projeto:
 
-Headers:
+```bash
+py -m pip install -r requirements.txt
+```
+
+Para executar os exemplos de cliente:
+
+```bash
+py -m pip install requests
+```
+
+## Iniciar
+
+No Windows, execute:
 
 ```text
-X-API-Key: SUA_CHAVE
-Content-Type: application/json
+iniciar_api.bat
 ```
 
-Body:
+ou:
 
-```json
-{
-  "base64": "JVBERi0xLjcK...",
-  "nome_arquivo": "nota.pdf"
-}
+```bash
+py -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-## Render
-
-Build:
+Abra:
 
 ```text
-pip install -r requirements.txt
+http://127.0.0.1:8000/docs
 ```
 
-Start:
+## API Key de teste
+
+O `.env` está configurado inicialmente com:
 
 ```text
-uvicorn app.main:app --host 0.0.0.0 --port $PORT
+chave-teste-nfse-2026
 ```
 
-Variáveis:
+Use no header:
 
 ```text
-API_KEY=SUA_CHAVE
-MAX_FILE_MB=20
-PYTHON_VERSION=3.13.14
+X-API-Key: chave-teste-nfse-2026
 ```
 
-Não é necessário instalar Tesseract no Render.
-O OCR principal usa RapidOCR + ONNXRuntime.
+Troque a chave antes de publicar a API.
+
+## Uma nota
+
+```text
+POST /nfse/extrair
+```
+
+Campo multipart:
+
+```text
+arquivo
+```
+
+## Várias notas
+
+```text
+POST /nfse/extrair-lote
+```
+
+Campo multipart repetido:
+
+```text
+arquivos
+```
+
+## Produção
+
+Antes de publicar:
+
+- troque a API Key;
+- remova `--reload`;
+- utilize HTTPS;
+- não envie o `.env` para Git;
+- defina limites de upload adequados.
